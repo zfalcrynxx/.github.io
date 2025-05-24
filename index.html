@@ -2,81 +2,99 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Te Amo</title>
+  <title>Matrix Te Amo</title>
   <style>
     body {
       margin: 0;
+      background: black;
       overflow: hidden;
-      background-color: black;
-      color: pink;
-      font-family: monospace;
-    }
-    #start-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2rem;
-      padding: 1rem 2rem;
-      background-color: pink;
-      border: none;
-      color: black;
-      cursor: pointer;
-      z-index: 10;
+      position: relative;
     }
     canvas {
       display: block;
     }
+    #startButton {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #ff69b4;
+      color: white;
+      font-size: 24px;
+      padding: 20px 40px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
-
-<button id="start-btn">Inicio</button>
-<canvas id="matrix-canvas"></canvas>
-<audio id="audio" src="AhaTok_som original_1748117502542.mp3"></audio>
+<button id="startButton">Toca para comenzar</button>
+<audio id="bgAudio" loop>
+  <source src="AhaTok_som original_1748117502542.mp3" type="audio/mpeg">
+  Tu navegador no soporta el audio.
+</audio>
+<canvas id="matrixCanvas"></canvas>
 
 <script>
-  const button = document.getElementById('start-btn');
-  const canvas = document.getElementById('matrix-canvas');
-  const audio = document.getElementById('audio');
+  const canvas = document.getElementById('matrixCanvas');
   const ctx = canvas.getContext('2d');
 
-  const words = ['Te amo'];
-  let fontSize = 20;
-  let columns;
-  let drops = [];
+  const startButton = document.getElementById('startButton');
+  const audio = document.getElementById('bgAudio');
 
-  function startMatrix() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    columns = Math.floor(canvas.width / fontSize);
-    drops = Array(columns).fill(1);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-    function draw() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#ff69b4'; // rosa
-      ctx.font = fontSize + 'px monospace';
+  const phrase = "Te amo";
+  const fontSize = 20;
+  const columns = Math.floor(canvas.width / (fontSize * 3.5));
+  const drops = Array(columns).fill(1);
 
-      for (let i = 0; i < drops.length; i++) {
-        let text = words[Math.floor(Math.random() * words.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+  let initialWave = true;
+  let waveProgress = 0;
 
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#ff69b4';
+    ctx.font = `${fontSize}px monospace`;
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = phrase;
+
+      const x = i * fontSize * 4;
+      const y = drops[i] * fontSize;
+
+      if (initialWave) {
+        const waveHeight = Math.sin(i * 0.5 + waveProgress * 0.2) * 20 + canvas.height / 2;
+        ctx.fillText(text, x, waveHeight);
+      } else {
+        ctx.fillText(text, x, y);
+
+        if (y > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
+
         drops[i]++;
       }
     }
-    setInterval(draw, 50);
+
+    if (initialWave) {
+      waveProgress++;
+      if (waveProgress > 60) {
+        initialWave = false;
+      }
+    }
   }
 
-  button.addEventListener('click', () => {
-    button.style.display = 'none';
+  startButton.addEventListener('click', () => {
     audio.play();
-    startMatrix();
+    startButton.style.display = 'none';
+    setInterval(drawMatrix, 50);
   });
 </script>
-
 </body>
 </html>
